@@ -1,0 +1,8 @@
+{
+  "name": "n8n-playwright",
+  "version": "1.0.0",
+  "description": "n8n con Playwright integrado",
+  "scripts": {
+    "start": "n8n start"
+  }
+}
