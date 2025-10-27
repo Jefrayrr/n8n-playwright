@@ -1,25 +1,36 @@
-# Imagen base oficial de n8n
-FROM docker.n8n.io/n8nio/n8n:latest
+# Imagen base con Node.js + sistema completo
+FROM node:20-bullseye
 
-# Cambiamos a usuario root para instalar dependencias
-USER root
+# Instalamos dependencias de sistema necesarias para Playwright
+RUN apt-get update && \
+    apt-get install -y wget gnupg ca-certificates curl fonts-liberation libasound2 libatk1.0-0 libc6 \
+    libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libglib2.0-0 libgtk-3-0 libnss3 \
+    libnspr4 libpango-1.0-0 libx11-6 libx11-xcb1 libxcomposite1 libxdamage1 libxext6 libxfixes3 \
+    libxrandr2 libxshmfence1 libxss1 libxtst6 lsb-release xdg-utils libgbm1 && \
+    rm -rf /var/lib/apt/lists/*
 
-# Instalar Playwright y los navegadores (solo Chromium para ahorrar espacio)
+# Instalamos n8n globalmente
+RUN npm install -g n8n
+
+# Instalamos Playwright y Chromium
 RUN npm install -g playwright && \
-    npx playwright install --with-deps chromium
+    npx playwright install chromium
 
-# Crear carpeta para scripts personalizados
-RUN mkdir -p /data/scripts
+# Creamos carpeta de trabajo
 WORKDIR /data
 
-# Copiar scripts al contenedor
+# Copiamos scripts personalizados (opcional)
 COPY scripts/ /data/scripts/
 
-# Volvemos al usuario por defecto de n8n
-USER node
-
-# Exponemos el puerto 5678
+# Exponemos el puerto
 EXPOSE 5678
 
-# Iniciar n8n
+# Variables de entorno (puedes sobreescribirlas en el panel de Railway/Fly)
+ENV N8N_BASIC_AUTH_ACTIVE=true
+ENV N8N_BASIC_AUTH_USER=admin
+ENV N8N_BASIC_AUTH_PASSWORD=admin
+ENV N8N_ENCRYPTION_KEY=1234567890abcdef
+ENV PLAYWRIGHT_HEADLESS=true
+
+# Iniciamos n8n
 CMD ["n8n", "start"]
